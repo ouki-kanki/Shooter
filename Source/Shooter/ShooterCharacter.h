@@ -31,14 +31,21 @@ private:
 	// with the keyword class we make a promise to the compiler that we will include the class later
 	// UPROPERTY marks the property for garbage collection as well as it exposes it for blueprint
 	// Visible Anywhere makes the property available in blueprint details and in the instance created in the editor 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))	
 	// camera boom is used to attach a camera to the character, positioning the camera behind the character
 	class USpringArmComponent* CameraBoom;
+
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+	class UCameraComponent* FollowCamera;
 
 public:
 	// with the forceinline the call of the function will litterally replaced with the statement inside the body.
 
 	// REturns CameraBoom subobject
 	FORCEINLINE USpringArmComponent* GetCameraBoom() const { return CameraBoom; };
+
+	/** REturns FollowCamera subobject  */
+	FORCEINLINE UCameraComponent* GetFollowCamera() const { return FollowCamera; };
 
 };
