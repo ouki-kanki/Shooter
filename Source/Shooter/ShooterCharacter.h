@@ -19,6 +19,22 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	/**  Called for forwards/backwards */
+	void MoveForward(float Value);
+
+	// called for side to side 
+	void MoveRight(float Value);
+
+	// Called via input to turn at a given rate
+	// @param Rate This is a normalized rate, i.e 1.0 means 100% of desired turn rate
+	void TurnAtRate(float Rate);
+
+	// called via input to look up / down at a given rate
+	// @param Rate this is a normalized rate, 1.0 means 100% of the desired rate
+	void LookUpAtRate(float Rate);
+
+
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -38,6 +54,15 @@ private:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
+
+	// Base turn rate in deg/sec/ Other scaling may affect final turn rate.
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		float BaseTurnRate;
+
+	// dec / sec . Other scaling can apply to change the look up rate.
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		float BaseLookUpRate;
+
 
 public:
 	// with the forceinline the call of the function will litterally replaced with the statement inside the body.

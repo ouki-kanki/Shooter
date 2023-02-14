@@ -6,7 +6,18 @@
 #include "Camera/CameraComponent.h"
 
 // Sets default values
-AShooterCharacter::AShooterCharacter()
+AShooterCharacter::AShooterCharacter() :
+	BaseTurnRate(45.f),
+	BaseLookUpRate(45.f)
+	/**  
+		TODO: have to check this!
+		if baseLookupRate was a class or it was a constant
+		this would make sense because with list initialization we avoid calling the default constructor but in this case i don't undestand why 
+		we use list initialization,
+
+
+	
+	**/
 {
  	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
@@ -67,6 +78,50 @@ void AShooterCharacter::BeginPlay()
 
 }
 
+void AShooterCharacter::MoveForward(float Value)
+{
+	if ((Controller != nullptr) && (Value != 0.0f))
+	{
+		// find out which way is forward
+		const FRotator Rotation{ Controller->GetControlRotation() };
+		const FRotator YawRotation{ 0, Rotation.Yaw, 0 }; // we don't need the pitch and the roll 
+
+		const FVector Direction{ FRotationMatrix{ YawRotation }.GetUnitAxis(EAxis::X) };
+		// the value input is from the input controller .(w) 1 for forward (s) -1 for backwards
+		AddMovementInput(Direction, Value); // scale by value . (for backwards the value will be -1)
+	}
+}
+
+void AShooterCharacter::MoveRight(float Value)
+{
+	if ((Controller != nullptr) && (Value != 0.0f))
+	{
+		// find out which way is forward
+		const FRotator Rotation{ Controller->GetControlRotation() };
+		const FRotator YawRotation{ 0, Rotation.Yaw, 0 }; // we don't need the pitch and the roll 
+
+		const FVector Direction{ FRotationMatrix{ YawRotation }.GetUnitAxis(EAxis::Y) }; // Y is the right vector 
+		// the value input is from the input controller .(w) 1 for forward (s) -1 for backwards
+		AddMovementInput(Direction, Value); // scale by value . (for backwards the value will be -1)
+	}
+}
+
+void AShooterCharacter::TurnAtRate(float Rate)
+{
+	// BaseTurnRate is in degrees per second and DeltaTime is seconds per frame -- > thus Rate will be degrees per frame in this manner we can provide the controller input with the correct unit
+	// this will affect the controllers yaw
+	// GetWorld()->GetDeltaSeconds() will give the DeltaTime
+	// Rate values are from 0 to 1 in relation of how much we are pressing the thumstick
+	// calculate delta for this frame from the rate information
+	AddControllerYawInput(Rate * BaseTurnRate * GetWorld()->GetDeltaSeconds());
+}
+
+void AShooterCharacter::LookUpAtRate(float Rate)
+{
+	UE_LOG(LogTemp, Warning, TEXT("yoyoyo turn"));
+	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
+}
+
 // Called every frame
 void AShooterCharacter::Tick(float DeltaTime)
 {
@@ -78,6 +133,18 @@ void AShooterCharacter::Tick(float DeltaTime)
 void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+	check(PlayerInputComponent); // the check macro checks if the playerinputComponent is valid
 
+	// here we can bind the inputs from the controller to the respected functions
+
+	PlayerInputComponent->BindAxis("MoveForward", this, &AShooterCharacter::MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this, &AShooterCharacter::MoveRight);
+	PlayerInputComponent->BindAxis("TurnRate", this, &AShooterCharacter::TurnAtRate);
+	PlayerInputComponent->BindAxis("LookUpRate", this, &AShooterCharacter::LookUpAtRate);
+	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
+	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
+	
+	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
+	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 }
 
