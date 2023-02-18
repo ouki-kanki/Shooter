@@ -33,6 +33,10 @@ protected:
 	// @param Rate this is a normalized rate, 1.0 means 100% of the desired rate
 	void LookUpAtRate(float Rate);
 
+	/**  Called when the fire weapon is pressed */
+	void FireWeapon();
+
+	void AlterFireWeapon();
 
 
 public:	
@@ -49,11 +53,11 @@ private:
 	// Visible Anywhere makes the property available in blueprint details and in the instance created in the editor 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))	
 	// camera boom is used to attach a camera to the character, positioning the camera behind the character
-	class USpringArmComponent* CameraBoom;
+		class USpringArmComponent* CameraBoom;
 
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	class UCameraComponent* FollowCamera;
+		class UCameraComponent* FollowCamera;
 
 	// Base turn rate in deg/sec/ Other scaling may affect final turn rate.
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -63,7 +67,19 @@ private:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		float BaseLookUpRate;
 
+	/**  Randomized gunshot sound cue */
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+		class USoundCue* FireSound;
 
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+		class USoundCue* LazerSound;
+
+	/**  Flash spawned at barrel socket */
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+		class UParticleSystem* MuzzleFlash;
+
+	UPROPERTY(EditAnywhere, BluePrintReadWrite, Category = Combat, meta = (AllowPrivateAccess = "true"))
+		class UParticleSystem* LazerParticle;
 public:
 	// with the forceinline the call of the function will litterally replaced with the statement inside the body.
 

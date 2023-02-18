@@ -4,6 +4,10 @@
 #include "ShooterCharacter.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundCue.h"
+#include "Engine/SkeletalMeshSocket.h"
 
 // Sets default values
 AShooterCharacter::AShooterCharacter() :
@@ -35,8 +39,21 @@ AShooterCharacter::AShooterCharacter() :
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // socketname is the socket at the end of the boom in which the camera will attach.
 
-	// why don't want the camera to rotate relative to the boom 
+	// camera does not rotate relative to the arm 
 	FollowCamera->bUsePawnControlRotation = false;
+
+	// With this the controller only affect the camera
+	bUseControllerRotationPitch = false; // don't use the controller pitch for the character mesh
+	bUseControllerRotationYaw = false; // dont't use yaw
+	bUseControllerRotationRoll = false; // don't use roll
+
+	// Configure character movement
+	// Rotate the character to the direction of movement
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->RotationRate = FRotator(0.f, 540.f, 0.f); // yaw value
+	
+	GetCharacterMovement()->JumpZVelocity = 600.f;
+	GetCharacterMovement()->AirControl = 1.f;
 }
 
 // Called when the game starts or when spawned
@@ -44,7 +61,6 @@ void AShooterCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	UE_LOG(LogTemp, Warning, TEXT("hello there"));
 
 	int myInt{ 42 };
 
@@ -118,8 +134,47 @@ void AShooterCharacter::TurnAtRate(float Rate)
 
 void AShooterCharacter::LookUpAtRate(float Rate)
 {
-	UE_LOG(LogTemp, Warning, TEXT("yoyoyo turn"));
 	AddControllerPitchInput(Rate * BaseLookUpRate * GetWorld()->GetDeltaSeconds());
+}
+
+void AShooterCharacter::FireWeapon()
+{
+	if (FireSound)
+	{
+		UGameplayStatics::PlaySound2D(this, FireSound);
+	}
+
+	const USkeletalMeshSocket* BarrelSocket = GetMesh()->GetSocketByName("BarrelSocket");
+
+	if (BarrelSocket)
+	{
+		const FTransform SocketTransform = BarrelSocket->GetSocketTransform(GetMesh()); // this contains location rotation and scale data
+
+		if (MuzzleFlash)
+		{
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), MuzzleFlash, SocketTransform);
+		}
+	}
+}
+
+void AShooterCharacter::AlterFireWeapon()
+{
+	if (LazerSound)
+	{
+		UGameplayStatics::PlaySound2D(this, LazerSound);
+	}
+
+	const USkeletalMeshSocket* BarrelSocket = GetMesh()->GetSocketByName("BarrelSocket");
+
+	if (BarrelSocket)
+	{
+		const FTransform SocketTransform = BarrelSocket->GetSocketTransform(GetMesh()); // this contains location rotation and scale data
+
+		if (LazerParticle)
+		{
+			UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), LazerParticle, SocketTransform);
+		}
+	}
 }
 
 // Called every frame
@@ -146,5 +201,9 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
+
+
+	PlayerInputComponent->BindAction("FireButton", IE_Pressed, this, &AShooterCharacter::FireWeapon);
+	PlayerInputComponent->BindAction("AlterFireButton", IE_Pressed, this, &AShooterCharacter::AlterFireWeapon);
 }
 
